@@ -9,10 +9,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Import settings after logging is set up
-from config import settings, get_database_url
+from config import settings
 
 # Get the appropriate database URL
-DATABASE_URL = get_database_url()
+DATABASE_URL = settings.database_url
 
 # Log the database URL (with password masked)
 if "://" in DATABASE_URL:
