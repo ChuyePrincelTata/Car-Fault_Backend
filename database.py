@@ -1,13 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from config import settings, get_database_url
 import logging
 import os
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Import settings after logging is set up
+from config import settings, get_database_url
 
 # Get the appropriate database URL
 DATABASE_URL = get_database_url()

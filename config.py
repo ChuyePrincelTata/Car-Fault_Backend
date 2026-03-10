@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./carfirstaid.db")
     
     # JWT
-    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
+    secret_key: str = os.getenv("SECRET_KEY", "fallback-secret-key-for-development-only")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
@@ -39,3 +39,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 settings = Settings()
+
+def get_database_url():
+    """Get the appropriate database URL based on environment"""
+    return settings.database_url
