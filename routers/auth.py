@@ -10,6 +10,7 @@ from auth import verify_password, get_password_hash, create_access_token
 from config import settings
 import time
 import logging
+import traceback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -69,10 +70,10 @@ async def register(request: Request, user_data: UserCreate, db: Session = Depend
             detail="Database service temporarily unavailable. Please try again later."
         )
     except Exception as e:
-        logger.error(f"Unexpected error during registration: {e}")
+        logger.error(f"Unexpected error during registration: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred. Please try again later."
+            detail=f"An unexpected error occurred: {str(e)}"
         )
 
 @router.post("/login", response_model=Token)
@@ -116,10 +117,10 @@ async def login(request: Request, user_data: UserLogin, db: Session = Depends(ge
         # Re-raise HTTP exceptions (like 401 Unauthorized)
         raise
     except Exception as e:
-        logger.error(f"Unexpected error during login: {e}")
+        logger.error(f"Unexpected error during login: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred. Please try again later."
+            detail=f"An unexpected error occurred: {str(e)}"
         )
 
 @router.post("/token", response_model=Token)
@@ -161,8 +162,8 @@ async def login_for_access_token(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error during token generation: {e}")
+        logger.error(f"Unexpected error during token generation: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred. Please try again later."
+            detail=f"An unexpected error occurred: {str(e)}"
         )
