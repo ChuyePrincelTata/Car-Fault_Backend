@@ -59,7 +59,7 @@ async def register(request: Request, user_data: UserCreate, db: Session = Depend
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": UserSchema.from_orm(db_user)
+            "user": UserSchema.model_validate(db_user, from_attributes=True)
         }
         
     except (OperationalError, DatabaseError) as e:
@@ -103,7 +103,7 @@ async def login(request: Request, user_data: UserLogin, db: Session = Depends(ge
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": UserSchema.from_orm(user)
+            "user": UserSchema.model_validate(user, from_attributes=True)
         }
         
     except (OperationalError, DatabaseError) as e:
@@ -149,7 +149,7 @@ async def login_for_access_token(
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": UserSchema.from_orm(user)
+            "user": UserSchema.model_validate(user, from_attributes=True)
         }
         
     except (OperationalError, DatabaseError) as e:
