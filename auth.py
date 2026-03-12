@@ -9,7 +9,7 @@ from database import get_db
 from models import User
 from config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=10)
 security = HTTPBearer()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
