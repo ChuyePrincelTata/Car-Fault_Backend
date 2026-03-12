@@ -9,7 +9,12 @@ from database import get_db
 from models import User
 from config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=10)
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__rounds=10,
+    bcrypt__truncate_error=False,  # silently truncate instead of raising on passwords >72 bytes
+)
 security = HTTPBearer()
 
 # bcrypt has a hard 72-byte limit — truncate before hashing/verifying
