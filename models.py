@@ -108,3 +108,12 @@ class Notification(Base):
     read = Column(Boolean, default=False)
     link_id = Column(String, nullable=True)  # Reference to related entity
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class VideoCache(Base):
+    __tablename__ = "video_cache"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    issue_name = Column(String, unique=True, index=True, nullable=False)
+    video_links = Column(Text, nullable=False)  # JSON string of video objects
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
