@@ -9,7 +9,10 @@ from models import User, Diagnostic, DiagnosticType
 from schemas import Diagnostic as DiagnosticSchema, DiagnosticCreate, DiagnosticResult
 from auth import get_current_active_user
 from config import settings
+from services.youtube_service import YouTubeService
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/", response_model=DiagnosticSchema)
@@ -77,20 +80,35 @@ async def upload_diagnostic_file(
     
     # TODO: Send to AI model for analysis
     # For now, return mock result
+    mock_issue = "Check Engine Light" if diagnostic.type == DiagnosticType.DASHBOARD else "Engine Knock"
+    
+    # Fetch YouTube videos for the detected issue
+    try:
+        video_links = await YouTubeService.get_or_create_video_links(mock_issue, db)
+        logger.info(f"Fetched {len(video_links)} video links for issue: {mock_issue}")
+    except Exception as e:
+        logger.error(f"Failed to fetch YouTube videos: {e}")
+        video_links = []
+    
+    # Format videos for response (include only title and url)
+    formatted_videos = [
+        {"title": v.get("title", "Car Repair Video"), "url": v.get("url", "")}
+        for v in video_links
+    ]
+    
     mock_result = {
-        "issue": "Check Engine Light" if diagnostic.type == DiagnosticType.DASHBOARD else "Engine Knock",
+        "issue": mock_issue,
         "confidence": 85.5,
         "description": "Mock AI analysis result",
         "recommendation": "Please consult a mechanic",
         "severity": "medium",
-        "video_links": [
-            {"title": "How to fix this issue", "url": "https://youtube.com/watch?v=example"}
-        ]
+        "video_links": formatted_videos
     }
     
     diagnostic.ai_result = json.dumps(mock_result)
     diagnostic.confidence_score = mock_result["confidence"]
     diagnostic.severity = mock_result["severity"]
+    diagnostic.video_links = json.dumps(formatted_videos)
     db.commit()
     
     return {"message": "File uploaded and analyzed successfully", "result": mock_result}
