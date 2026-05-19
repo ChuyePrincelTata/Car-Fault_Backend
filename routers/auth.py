@@ -69,6 +69,9 @@ async def register(request: Request, user_data: UserCreate, db: Session = Depend
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database service temporarily unavailable. Please try again later."
         )
+    except HTTPException:
+        # Re-raise intentional API errors, such as duplicate email, without turning them into 500s.
+        raise
     except Exception as e:
         logger.error(f"Unexpected error during registration: {e}\n{traceback.format_exc()}")
         raise HTTPException(
