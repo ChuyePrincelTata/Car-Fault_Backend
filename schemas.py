@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from models import UserRole, DiagnosticType, SeverityLevel, VerificationStatus
 
-# User schemas
+# ── User schemas ──────────────────────────────────────────────────────────────
+
 class UserBase(BaseModel):
     email: EmailStr
     name: str
@@ -17,15 +18,15 @@ class UserLogin(BaseModel):
     password: str
 
 class User(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     role: UserRole
     is_active: bool
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
 
-# Mechanic schemas
+# ── Mechanic schemas ──────────────────────────────────────────────────────────
+
 class MechanicBase(BaseModel):
     business_name: Optional[str] = None
     specialization: Optional[str] = None
@@ -40,18 +41,19 @@ class MechanicUpdate(MechanicBase):
     pass
 
 class Mechanic(MechanicBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
+    certificate_url: Optional[str] = None
     verification_status: VerificationStatus
     rating: float
     total_ratings: int
     created_at: datetime
     user: User
-    
-    class Config:
-        from_attributes = True
 
-# Diagnostic schemas
+# ── Diagnostic schemas ────────────────────────────────────────────────────────
+
 class DiagnosticBase(BaseModel):
     type: DiagnosticType
     title: str
@@ -73,6 +75,8 @@ class DiagnosticResult(BaseModel):
     video_links: List[VideoLink] = []
 
 class Diagnostic(DiagnosticBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     file_url: Optional[str] = None
@@ -80,11 +84,9 @@ class Diagnostic(DiagnosticBase):
     severity: Optional[SeverityLevel] = None
     result: Optional[DiagnosticResult] = None
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
 
-# Feedback schemas
+# ── Feedback schemas ──────────────────────────────────────────────────────────
+
 class FeedbackBase(BaseModel):
     rating: int
     message: Optional[str] = None
@@ -94,16 +96,16 @@ class FeedbackCreate(FeedbackBase):
     diagnostic_id: Optional[int] = None
 
 class Feedback(FeedbackBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     mechanic_id: Optional[int] = None
     diagnostic_id: Optional[int] = None
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
 
-# Token schemas
+# ── Token schemas ─────────────────────────────────────────────────────────────
+
 class Token(BaseModel):
     access_token: str
     token_type: str
