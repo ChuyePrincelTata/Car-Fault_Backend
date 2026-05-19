@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import bcrypt as bcrypt_lib
 from fastapi import Depends, HTTPException, status
@@ -31,23 +30,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     hash_bytes = hashed_password.encode("utf-8")
     return bcrypt_lib.checkpw(pw_bytes, hash_bytes)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """Create a signed JWT access token."""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Decode and validate a Bearer JWT; return the subject (email)."""
     try:
         payload = jwt.decode(
             credentials.credentials,
             settings.secret_key,
             algorithms=[settings.algorithm],
         )
-        email: str = payload.get("sub")
+        email: str | None = payload.get("sub")
         if email is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,7 +60,8 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def get_current_user(email: str = Depends(verify_token), db: Session = Depends(get_db)):
+def get_current_user(email: str = Depends(verify_token), db: Session = Depends(get_db)) -> User:
+    """Resolve a verified email to the corresponding User row."""
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise HTTPException(
@@ -71,7 +70,8 @@ def get_current_user(email: str = Depends(verify_token), db: Session = Depends(g
         )
     return user
 
-def get_current_active_user(current_user: User = Depends(get_current_user)):
+def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    """Guard that rejects deactivated accounts."""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
